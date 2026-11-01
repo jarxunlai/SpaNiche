@@ -21,7 +21,9 @@ spaniche_nmf_celltype_and_lr(
   sigma_v = c(0.5, 1, 1.5),
   maxiter = 200,
   st.count = 20,
-  epsilon = 1e-04
+  epsilon = 1e-04,
+  assay = NULL,
+  n_threads = getOption("SpaNiche.n_threads", 1L)
 )
 }
 \arguments{
@@ -72,6 +74,14 @@ strength of Laplacian smoothness.}
 \item{st.count}{Convergence counter. If the change in the reconstruction error remains below epsilon for st.count consecutive iterations, the algorithm stops, assuming it has converged.}
 
 \item{epsilon}{Threshold on the relative change in the objective function used to assess convergence. If the relative change in error is less than epsilon for st.count consecutive iterations, convergence is assumed.}
+
+\item{assay}{Assay holding the expression data. Defaults to \code{"Spatial"}
+if present, otherwise the default assay. Seurat v4 and v5 objects are both supported.}
+
+\item{n_threads}{Number of threads the BLAS/OpenMP libraries may use while
+this function runs (restored afterwards). Defaults to
+\code{getOption("SpaNiche.n_threads", 1L)}; \code{NULL} leaves the current
+setting untouched (OpenBLAS/MKL then use every core).}
 }
 \value{
 A list containing:

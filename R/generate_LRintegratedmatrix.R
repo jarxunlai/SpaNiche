@@ -11,7 +11,8 @@
 #'   \item Conversely, if the center spot expresses receptors, neighboring spots express ligands.
 #' }
 #' @param whoisneighbor
-#' A square numeric matrix indicating spatial neighborhood relationships.
+#' A square numeric matrix (dense, or sparse from the \pkg{Matrix} package)
+#' indicating spatial neighborhood relationships.
 #' Rows and columns correspond to spatial spots (barcodes), where non-zero
 #' values indicate neighboring relationships. The row and column names must be
 #' identical and ordered consistently with the gene expression matrices.
@@ -40,7 +41,7 @@ generate_LRintegratedmatrix=function(
 ){
   print("generating L-R integrated matrix:")
 
-  if(is.matrix(whoisneighbor) &
+  if((is.matrix(whoisneighbor) | methods::is(whoisneighbor, "Matrix")) &
      is.matrix(neighbor_geneexp) &
      is.matrix(center_geneexp)){
     print("All data is matrix. ok!")
@@ -56,7 +57,12 @@ generate_LRintegratedmatrix=function(
     stop("The order of spatial barcodes is not identical across matrices!")
   }
 
-  neighborspots_by_gene.Meanexp=whoisneighbor %*% neighbor_geneexp # Matrix multiplication
+  # Matrix multiplication. The same gene appears in many LR pairs, so the
+  # neighbour mean is computed once per distinct gene and then expanded.
+  neighbor_genes = unique(colnames(neighbor_geneexp))
+  gene_idx = match(colnames(neighbor_geneexp), neighbor_genes)
+  neighbor_mean = as.matrix(whoisneighbor %*% neighbor_geneexp[, match(neighbor_genes, colnames(neighbor_geneexp)), drop = FALSE])
+  neighborspots_by_gene.Meanexp = neighbor_mean[, gene_idx, drop = FALSE]
   centerspot_by_gene=center_geneexp
   region_by_LR=neighborspots_by_gene.Meanexp * centerspot_by_gene # Element-wise integration of center and neighbor expression
 

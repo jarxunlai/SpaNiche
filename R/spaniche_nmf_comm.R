@@ -38,6 +38,15 @@
 #' @param S_intra_thre S_intra_thre
 #' @param term_topn Number of top enriched functional terms retained for visualization.
 #' @param num_core Number of CPU cores used for parallel computation in downstream scSeqComm analysis.
+#'   Each worker is limited to one BLAS thread so the total stays at \code{num_core}.
+#' @param assay Assay holding the expression data. Defaults to \code{"Spatial"}
+#'   if present, otherwise the default assay. Seurat v4 and v5 objects are both supported.
+#' @param n_threads Number of threads the BLAS/OpenMP libraries may use while
+#'   this function runs (restored afterwards). Defaults to
+#'   \code{getOption("SpaNiche.n_threads", 1L)}; \code{NULL} leaves the current
+#'   setting untouched (OpenBLAS/MKL then use every core).
+#'
+#' @details Requires the \pkg{scSeqComm} package (\url{https://gitlab.com/sysbiobig/scseqcomm}).
 #'
 #' @return A list containing:
 #'   \itemize{
@@ -50,7 +59,6 @@
 #' @import tidyverse
 #' @import IntNMF
 #' @import scales
-#' @import scSeqComm
 #' @export
 spaniche_nmf_comm = function(
     ## Basic inputs
@@ -78,8 +86,17 @@ spaniche_nmf_comm = function(
   spot_topic.quantile.thre = 0.2,
   S_intra_thre = 0.8,
   term_topn = 20,
-  num_core = 1
+  num_core = 1,
+  assay = NULL,
+  n_threads = getOption("SpaNiche.n_threads", 1L)
 ){
+  if (!requireNamespace("scSeqComm", quietly = TRUE)) {
+    stop("spaniche_nmf_comm() requires the scSeqComm package: ",
+         "remotes::install_gitlab('sysbiobig/scseqcomm')", call. = FALSE)
+  }
+  old_threads = .set_threads(n_threads)
+  on.exit(.restore_threads(old_threads), add = TRUE)
+  assay = .resolve_assay(spatial.seu, assay)
   distance_thre = round(distance_thre,digits)
   LR_distance_thre = round(LR_distance_thre,digits)
 
@@ -110,7 +127,7 @@ spaniche_nmf_comm = function(
   write.csv(spot.ct.df,file = "spot_by_celltype_extended.csv",quote = F,row.names = T)
 
   ### Part II: Construction of ligand–receptor integrated matrix
-  step1_res=prepare_for_LRintegratedmatrix(spatial.seu,LRDB)
+  step1_res=prepare_for_LRintegratedmatrix(spatial.seu,LRDB,assay = assay)
   distance_matrix = make_distance_matrix_LR(spatialdf = spatialdf,dm_type = LR_dm_type,distance_thre = LR_distance_thre,digits = digits)
   LRelementmatrix = step1_res[[1]]
   cc_interaction = step1_res[[2]]
@@ -153,7 +170,7 @@ spaniche_nmf_comm = function(
   var.df1$index = 1:length(var.df1$var_value)
   var_thre_1 = quantile(var.df1$var_value,var_thre[1])
   var_thre_2 = quantile(var.df1$var_value,var_thre[2])
-  var.df1 = var.df1 %>% filter(var_value > var_thre_1 & var_value < var_thre_2)
+  var.df1 = var.df1 %>% dplyr::filter(var_value > var_thre_1 & var_value < var_thre_2)
   used_interaction = var.df1$interaction
   used_interaction = intersect(colnames(LRintegratedmatrix),used_interaction)
   LRintegratedmatrix=LRintegratedmatrix[,used_interaction]
@@ -199,7 +216,7 @@ spaniche_nmf_comm = function(
   colnames(spot_topic) = paste0("topic",1:topic_num)
   allSB = rownames(spot_topic)
 
-  gene_expr_matrix = spatial.seu@assays$Spatial@data
+  gene_expr_matrix = .get_layer_data(spatial.seu, "data", assay)
   gene_expr_matrix = as.matrix(gene_expr_matrix)
   gene_expr_matrix = gene_expr_matrix[rowSums(gene_expr_matrix) > 0,]
 
@@ -260,14 +277,15 @@ spaniche_nmf_comm = function(
 
 
     ########## Identify and quantify intercellular and intracellular signaling
-    scSeqComm_res <- scSeqComm_analyze(gene_expr = tmp_gene_expr_matrix,
+    scSeqComm_res <- .with_single_thread_workers(scSeqComm::scSeqComm_analyze(gene_expr = tmp_gene_expr_matrix,
                                        cell_metadata = tmp_anno,
                                        inter_signaling = F,
                                        LR_pairs_DB = LR_db,
                                        TF_reg_DB = TF_TG_db,
                                        R_TF_association = TF_PPR,
                                        N_cores = num_core,
-                                       DEmethod = "wilcoxon")
+                                       DEmethod = "wilcoxon"),
+                                       n_workers = num_core)
 
 
     ### Downstream cellular responses induced by ligand–receptor interactions
@@ -280,7 +298,7 @@ spaniche_nmf_comm = function(
 
     # GO analysis of topic_high communication
     geneUniverse <- unique(unlist(scSeqComm_res$TF_reg_DB_scrnaseq))
-    cell_functional_response <- scSeqComm_GO_analysis(
+    cell_functional_response <- scSeqComm::scSeqComm_GO_analysis(
       results_signaling = topic_high_comm,
       geneUniverse = geneUniverse,
       method = "general")

@@ -4,7 +4,12 @@
 \alias{moransi_for_LRintegratedmatrix}
 \title{Calculate Moran's I for spatial ligand-receptor integrated matrix}
 \usage{
-moransi_for_LRintegratedmatrix(LRintegratedmatrix, spatial.seu, cc_interaction)
+moransi_for_LRintegratedmatrix(
+  LRintegratedmatrix,
+  spatial.seu,
+  cc_interaction,
+  image = NULL
+)
 }
 \arguments{
 \item{LRintegratedmatrix}{A numeric matrix of integrated LR interaction
@@ -16,10 +21,13 @@ consistency with Seurat's feature naming conventions.}
 \item{spatial.seu}{A Seurat object containing spatial transcriptomics data.
 This object must include spatial image information (e.g. Visium) and
 spot coordinates. Column names of LRintegratedmatrix must match
-the spot names in this object.}
+the spot names in this object. Works with Seurat v4 and v5 objects.}
 
 \item{cc_interaction}{A data frame containing ligand–receptor interaction
 annotations.}
+
+\item{image}{Name of the spatial image whose tissue coordinates are used.
+Defaults to the first image of \code{spatial.seu}.}
 }
 \value{
 A data frame containing Moran's I statistics for spatially variable
@@ -28,4 +36,11 @@ information. The output is sorted by decreasing observed Moran's I.
 }
 \description{
 Calculate Moran's I for spatial ligand-receptor integrated matrix
+}
+\details{
+Moran's I is computed with the same definition as
+\code{Seurat::FindSpatiallyVariableFeatures(selection.method = "moransi")}
+(inverse squared distance weights, normal-approximation p-values as in
+\code{ape::Moran.I}), but for all interactions at once with matrix
+products instead of one feature at a time.
 }

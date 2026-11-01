@@ -20,14 +20,11 @@ calculate_laplacian_matrix_with_gausskernel = function(
   # spa_mat: rows are points (cells/spots), columns are spatial coordinates
   # dist() returns Euclidean distances, then square them
   # ------------------------------------------------------------------
-  dst2=as.matrix(dist(spa_mat)^2)
-
-
   # ------------------------------------------------------------------
   # 2. Construct weighted adjacency matrix using Gaussian kernel
   # sigma controls the spatial smoothness / neighborhood size
   # ------------------------------------------------------------------
-  adj_matrix = exp(-1 * dst2 / (2*sigma^2))
+  adj_matrix = .gauss_adjacency(spa_mat, sigma)
 
 
   # ------------------------------------------------------------------
@@ -51,4 +48,10 @@ calculate_laplacian_matrix_with_gausskernel = function(
   return(list(laplacian = laplacian_matrix,
               degree = degree_matrix,
               adj = adj_matrix))
+}
+
+# Gaussian-kernel adjacency exp(-d^2 / (2 sigma^2)) between all rows of spa_mat.
+.gauss_adjacency = function(spa_mat, sigma) {
+  dst2 = as.matrix(dist(spa_mat)^2)
+  exp(-1 * dst2 / (2*sigma^2))
 }

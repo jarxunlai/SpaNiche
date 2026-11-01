@@ -43,6 +43,12 @@
 #' @param maxiter The maximum number of iterations allowed for the factorization process. This acts as a stopping criterion to prevent the algorithm from running indefinitely.
 #' @param st.count Convergence counter. If the change in the reconstruction error remains below epsilon for st.count consecutive iterations, the algorithm stops, assuming it has converged.
 #' @param epsilon Threshold on the relative change in the objective function used to assess convergence. If the relative change in error is less than epsilon for st.count consecutive iterations, convergence is assumed.
+#' @param assay Assay holding the expression data. Defaults to \code{"Spatial"}
+#'   if present, otherwise the default assay. Seurat v4 and v5 objects are both supported.
+#' @param n_threads Number of threads the BLAS/OpenMP libraries may use while
+#'   this function runs (restored afterwards). Defaults to
+#'   \code{getOption("SpaNiche.n_threads", 1L)}; \code{NULL} leaves the current
+#'   setting untouched (OpenBLAS/MKL then use every core).
 #'
 #' @return A list containing:
 #'   \itemize{
@@ -68,8 +74,13 @@ spaniche_nmf_celltype_and_gene = function(
   sigma_v = c(0.5, 1, 1.5),
   maxiter = 200,
   st.count = 20,
-  epsilon = 1e-04
+  epsilon = 1e-04,
+  assay = NULL,
+  n_threads = getOption("SpaNiche.n_threads", 1L)
 ){
+  old_threads = .set_threads(n_threads)
+  on.exit(.restore_threads(old_threads), add = TRUE)
+  assay = .resolve_assay(spatial.seu, assay)
   distance_thre = round(distance_thre,digits)
 
   # Ensure consistent spot ordering
@@ -98,9 +109,9 @@ spaniche_nmf_celltype_and_gene = function(
   write.csv(spot.ct.df,file = "spot_by_celltype_extended.csv",quote = F,row.names = T)
 
   ### Part II: Extract gene expression matrix
-  spatial.seu <- NormalizeData(spatial.seu, normalization.method = "LogNormalize", scale.factor = 10000)
-  spatial.seu <- FindVariableFeatures(spatial.seu, selection.method = "vst", nfeatures = ngenes)
-  genedf <- spatial.seu@assays$Spatial@data[VariableFeatures(spatial.seu),] %>% as.matrix() %>% t()
+  spatial.seu <- NormalizeData(spatial.seu, assay = assay, normalization.method = "LogNormalize", scale.factor = 10000)
+  spatial.seu <- FindVariableFeatures(spatial.seu, assay = assay, selection.method = "vst", nfeatures = ngenes)
+  genedf <- .get_layer_data(spatial.seu, "data", assay)[VariableFeatures(spatial.seu, assay = assay),] %>% as.matrix() %>% t()
 
   # Ensure consistent spot ordering
   if(identical(rownames(spatialdf),rownames(genedf))){

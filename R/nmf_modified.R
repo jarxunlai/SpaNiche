@@ -67,13 +67,14 @@ nmf_modified = function(
       W=Wzero
       H=Hzero
 
-      # Compute adjacency, degree, and Laplacian matrices using a Gaussian kernel based on spatial coordinates
-      laplacian_res = calculate_laplacian_matrix_with_gausskernel(
-        spa_mat = spatialdf,sigma = sigmai
-      )
-      laplacian_matrix = laplacian_res$laplacian
-      degree_matrix = laplacian_res$degree
-      adj_matrix = laplacian_res$adj
+      # Adjacency (Gaussian kernel on spatial coordinates) and degree vector.
+      # The Laplacian L = D - A is never formed explicitly:
+      #   D %*% W = degree_vector * W
+      #   tr(t(W) %*% L %*% W) = sum(degree_vector * W^2) - sum(W * (A %*% W))
+      adj_matrix = .gauss_adjacency(spatialdf, sigmai)
+      degree_vector = rowSums(adj_matrix)
+      AW = adj_matrix %*% W
+      WH.old = NULL
 
       while ((iter < maxiter) & (count < st.count)) {
 
@@ -81,8 +82,8 @@ nmf_modified = function(
         Aminus=matrix(0,nrow = n,ncol = k)
         Aplus=matrix(0,nrow = n,ncol = k)
         for (i in 1:n.dat) {
-          Aminus = Aminus + 2*wt[i] * dat[[i]] %*% t(H[[i]])
-          Aplus = Aplus + 2 * wt[i] * W %*% H[[i]] %*% t(H[[i]])
+          Aminus = Aminus + 2*wt[i] * tcrossprod(dat[[i]], H[[i]])
+          Aplus = Aplus + 2 * wt[i] * W %*% tcrossprod(H[[i]])
         }
 
         # right_term = 2*lambdai*laplacian_matrix %*% W
@@ -90,73 +91,49 @@ nmf_modified = function(
         # Bplus = matrix(0,nrow = n,ncol = k)
         # Bminus = ifelse(right_term < 0,-right_term,0)
         # Bplus = ifelse(right_term >= 0,right_term,0)
-        Bminus = 2*lambdai* adj_matrix %*% W
-        Bplus = 2*lambdai* degree_matrix %*% W
+        Bminus = 2*lambdai* AW
+        Bplus = 2*lambdai* degree_vector * W
         W = W * ((Aminus+Bminus) / pmax(Aplus+Bplus,.Machine$double.eps))
 
         #step2: W->H
+        WtW = crossprod(W)
         for (i in 1:n.dat) {
-          Aminus=matrix(0,nrow = k,ncol = ncol(Hzero[[i]]))
-          Aplus=matrix(0,nrow = k,ncol = ncol(Hzero[[i]]))
-          Aminus = 2 * wt[i] * t(W) %*% dat[[i]]
-          Aplus = 2 * wt[i] * t(W) %*% W %*% H[[i]]
+          Aminus = 2 * wt[i] * crossprod(W, dat[[i]])
+          Aplus = 2 * wt[i] * WtW %*% H[[i]]
           Aplus = pmax(Aplus,.Machine$double.eps)
           H[[i]] = H[[i]] * (Aminus / Aplus)
         }
+
+        # A %*% W for the updated W: used by the objective below and by step1 of the next iteration
+        AW = adj_matrix %*% W
 
         # Compute the following for each iteration
         # (i) abs.diff : Change in reconstruction error
         # (ii) f.WH    : Objective function
         # (iii) difference_level
+        WH.new = lapply(1:n.dat, function(i) W %*% H[[i]])
+        f.WH <- 0
+        for (i in 1:n.dat) {
+          f.WH <- f.WH + wt[i]*sum((dat[[i]] - WH.new[[i]])^2)
+        }
+        f.WH <- f.WH + lambdai * (sum(degree_vector * W^2) - sum(W * AW))
+
         if (iter==1) {
-          for (i in 1:n.dat) {
-            assign(paste("d",i,".old",sep=""),W %*% H[[i]])
-          }
-
-          f.WH <- 0
-          for (i in 1:n.dat) {
-            f.WH <- f.WH + wt[i]*sum(
-              (dat[[i]] - eval(parse(text=paste("d",i,".old",sep=""))))^2
-            )
-          }
-          f.WH <- f.WH + lambdai * sum(diag(t(W) %*% laplacian_matrix %*% W))
-
           loss.previous = f.WH
           loss.current = NA
           difference_level = NA
           abs.diff = NA
         } else {
-          for (i in 1:n.dat) {
-            assign(paste("d",i,".new",sep=""),W %*% H[[i]])
-          }
-
           abs.diff <- 0
           for (i in 1:n.dat) {
-            abs.diff <- abs.diff + sum(
-              abs(
-                eval(parse(text=paste("d",i,".new",sep=""))) - eval(parse(text=paste("d",i,".old",sep="")))
-              )
-            ) / sum(
-              eval(parse(text=paste("d",i,".old",sep="")))
-            )
+            abs.diff <- abs.diff + sum(abs(WH.new[[i]] - WH.old[[i]])) / sum(WH.old[[i]])
           }
-
-          for (i in 1:n.dat) {
-            assign(paste("d",i,".old",sep=""),eval(parse(text=paste("d",i,".new",sep=""))))
-          }
-
-          f.WH <- 0
-          for (i in 1:n.dat) {
-            f.WH <- f.WH + wt[i]*sum(
-              (dat[[i]] - eval(parse(text=paste("d",i,".new",sep=""))))^2
-            )
-          }
-          f.WH <- f.WH + lambdai * sum(diag(t(W) %*% laplacian_matrix %*% W))
 
           loss.current = f.WH
           difference_level = abs(loss.current - loss.previous) / loss.previous
           loss.previous = loss.current
         }
+        WH.old = WH.new
 
         if (!is.na(difference_level) & difference_level < epsilon) {count <- count + 1} else {count <- 0}
 

@@ -27,7 +27,9 @@ spaniche_nmf_comm(
   spot_topic.quantile.thre = 0.2,
   S_intra_thre = 0.8,
   term_topn = 20,
-  num_core = 1
+  num_core = 1,
+  assay = NULL,
+  n_threads = getOption("SpaNiche.n_threads", 1L)
 )
 }
 \arguments{
@@ -88,7 +90,16 @@ topic-low spot groups (default: top and bottom 20 \%).}
 
 \item{term_topn}{Number of top enriched functional terms retained for visualization.}
 
-\item{num_core}{Number of CPU cores used for parallel computation in downstream scSeqComm analysis.}
+\item{num_core}{Number of CPU cores used for parallel computation in downstream scSeqComm analysis.
+Each worker is limited to one BLAS thread so the total stays at \code{num_core}.}
+
+\item{assay}{Assay holding the expression data. Defaults to \code{"Spatial"}
+if present, otherwise the default assay. Seurat v4 and v5 objects are both supported.}
+
+\item{n_threads}{Number of threads the BLAS/OpenMP libraries may use while
+this function runs (restored afterwards). Defaults to
+\code{getOption("SpaNiche.n_threads", 1L)}; \code{NULL} leaves the current
+setting untouched (OpenBLAS/MKL then use every core).}
 }
 \value{
 A list containing:
@@ -102,4 +113,7 @@ A list containing:
 \description{
 spaniche_nmf_comm: Spatial integrative NMF of cell-type abundance
 and ligand–receptor interaction matrices, with downstream pathway inference
+}
+\details{
+Requires the \pkg{scSeqComm} package (\url{https://gitlab.com/sysbiobig/scseqcomm}).
 }

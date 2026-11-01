@@ -31,6 +31,12 @@
 #' @param maxiter The maximum number of iterations allowed for the factorization process. This acts as a stopping criterion to prevent the algorithm from running indefinitely.
 #' @param st.count Convergence counter. If the change in the reconstruction error remains below epsilon for st.count consecutive iterations, the algorithm stops, assuming it has converged.
 #' @param epsilon Threshold on the relative change in the objective function used to assess convergence. If the relative change in error is less than epsilon for st.count consecutive iterations, convergence is assumed.
+#' @param assay Assay holding the expression data. Defaults to \code{"Spatial"}
+#'   if present, otherwise the default assay. Seurat v4 and v5 objects are both supported.
+#' @param n_threads Number of threads the BLAS/OpenMP libraries may use while
+#'   this function runs (restored afterwards). Defaults to
+#'   \code{getOption("SpaNiche.n_threads", 1L)}; \code{NULL} leaves the current
+#'   setting untouched (OpenBLAS/MKL then use every core).
 #'
 #' @return A list containing:
 #'   \itemize{
@@ -62,8 +68,13 @@ spaniche_nmf_celltype_and_lr = function(
   sigma_v = c(0.5, 1, 1.5),
   maxiter = 200,
   st.count = 20,
-  epsilon = 1e-04
+  epsilon = 1e-04,
+  assay = NULL,
+  n_threads = getOption("SpaNiche.n_threads", 1L)
 ){
+  old_threads = .set_threads(n_threads)
+  on.exit(.restore_threads(old_threads), add = TRUE)
+  assay = .resolve_assay(spatial.seu, assay)
   distance_thre = round(distance_thre,digits)
   LR_distance_thre = round(LR_distance_thre,digits)
 
@@ -94,7 +105,7 @@ spaniche_nmf_celltype_and_lr = function(
   write.csv(spot.ct.df,file = "spot_by_celltype_extended.csv",quote = F,row.names = T)
 
   ### Part II: Construction of ligand–receptor integrated matrix
-  step1_res=prepare_for_LRintegratedmatrix(spatial.seu,LRDB)
+  step1_res=prepare_for_LRintegratedmatrix(spatial.seu,LRDB,assay = assay)
   distance_matrix = make_distance_matrix_LR(spatialdf = spatialdf,dm_type = LR_dm_type,distance_thre = LR_distance_thre,digits = digits)
   LRelementmatrix = step1_res[[1]]
   cc_interaction = step1_res[[2]]
@@ -137,7 +148,7 @@ spaniche_nmf_celltype_and_lr = function(
   var.df1$index = 1:length(var.df1$var_value)
   var_thre_1 = quantile(var.df1$var_value,var_thre[1])
   var_thre_2 = quantile(var.df1$var_value,var_thre[2])
-  var.df1 = var.df1 %>% filter(var_value > var_thre_1 & var_value < var_thre_2)
+  var.df1 = var.df1 %>% dplyr::filter(var_value > var_thre_1 & var_value < var_thre_2)
   used_interaction = var.df1$interaction
   used_interaction = intersect(colnames(LRintegratedmatrix),used_interaction)
   LRintegratedmatrix=LRintegratedmatrix[,used_interaction]

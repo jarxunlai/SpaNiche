@@ -65,10 +65,10 @@ get_spot_by_celltype_extended=function(
     dst1 = distance_matrix[[smoothing_type[2]]]
     dst2 = distance_matrix[[smoothing_type[3]]]
 
-    spot_by_celltype.dst1=dst1 %*% spot_by_celltype
+    spot_by_celltype.dst1=as.matrix(dst1 %*% spot_by_celltype)
     colnames(spot_by_celltype.dst1)=paste0(colnames(spot_by_celltype.dst1),paste0("_",smoothing_type[2]))
 
-    spot_by_celltype.dst2=dst2 %*% spot_by_celltype
+    spot_by_celltype.dst2=as.matrix(dst2 %*% spot_by_celltype)
     colnames(spot_by_celltype.dst2)=paste0(colnames(spot_by_celltype.dst2),paste0("_",smoothing_type[3]))
 
     if (
@@ -89,7 +89,7 @@ get_spot_by_celltype_extended=function(
       )
 
     dst1 = distance_matrix[[smoothing_type[2]]]
-    spot_by_celltype.dst1=dst1 %*% spot_by_celltype
+    spot_by_celltype.dst1=as.matrix(dst1 %*% spot_by_celltype)
     colnames(spot_by_celltype.dst1)=paste0(colnames(spot_by_celltype.dst1),paste0("_",smoothing_type[2]))
 
     if (

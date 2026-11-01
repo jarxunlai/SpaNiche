@@ -12,7 +12,8 @@ generate_LRintegratedmatrix(
 )
 }
 \arguments{
-\item{whoisneighbor}{A square numeric matrix indicating spatial neighborhood relationships.
+\item{whoisneighbor}{A square numeric matrix (dense, or sparse from the \pkg{Matrix} package)
+indicating spatial neighborhood relationships.
 Rows and columns correspond to spatial spots (barcodes), where non-zero
 values indicate neighboring relationships. The row and column names must be
 identical and ordered consistently with the gene expression matrices.}

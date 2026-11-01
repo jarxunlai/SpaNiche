@@ -10,9 +10,9 @@
 #'
 #' @return A named list of adjacency matrices corresponding to each dm_type.
 #' Each matrix is normalized so that rows sum to 1 (row-normalization matrix).
+#' Matrices are sparse (\code{dgCMatrix}); use \code{as.matrix()} for a dense copy.
 #'
 #' @import tidyverse
-#' @importFrom raster pointDistance
 #' @export
 make_distance_matrix = function(
     spatialdf,
@@ -34,38 +34,23 @@ make_distance_matrix = function(
   distance_thre=sort(distance_thre)
   names(distance_thre) = dm_type
 
-  dst <- pointDistance(spatialdf,lonlat=F)
-  dst=round(dst,digits)
+  # Only pairs within the largest threshold can be neighbours, so distances are
+  # computed for those pairs only and kept sparse.
+  pairs = .neighbor_pairs(spatialdf, max(distance_thre), digits)
 
   res_list=as.list(1:length(dm_type))
   names(res_list)=dm_type
 
-  if ("view1" %in% dm_type) {
-    thre1 = distance_thre["view1"]
-    dst_view1=dst
-
-    dst_view1[dst_view1 <= thre1] = 1
-    dst_view1[dst_view1 > thre1] = 0
-    colnames(dst_view1)=rownames(spatialdf)
-    rownames(dst_view1)=rownames(spatialdf)
-    coef1=rowSums(dst_view1)
-    coef1=coef1 ^ (-1)
-    dst_view1=dst_view1 %>% apply(2,function(x){ x*coef1})
-    res_list$view1 = dst_view1
-  }
-
-  if ("view2" %in% dm_type) {
-    thre2 = distance_thre["view2"]
-    dst_view2=dst
-
-    dst_view2[dst_view2 <= thre2] = 1
-    dst_view2[dst_view2 > thre2] = 0
-    colnames(dst_view2)=rownames(spatialdf)
-    rownames(dst_view2)=rownames(spatialdf)
-    coef2=rowSums(dst_view2)
-    coef2=coef2 ^ (-1)
-    dst_view2=dst_view2 %>% apply(2,function(x){ x*coef2})
-    res_list[["view2"]] = dst_view2
+  for (view in intersect(c("view1", "view2"), dm_type)) {
+    thre = distance_thre[view]
+    # Same two-step recoding as the dense implementation: <= thre -> 1, then > thre -> 0.
+    v = pairs$d
+    v[v <= thre] = 1
+    v[v > thre] = 0
+    keep = pairs$d <= thre & v != 0
+    res_list[[view]] = .row_normalized_adjacency(
+      pairs$i[keep], pairs$j[keep], nrow(spatialdf), rownames(spatialdf)
+    )
   }
 
   res_list

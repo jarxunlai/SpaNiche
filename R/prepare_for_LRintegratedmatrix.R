@@ -5,17 +5,20 @@
 #' It filters CellChat ligand–receptor interactions based on genes present in the Spatial assay of a Seurat object and returns both the integrated expression matrix and the filtered interaction table.
 #' @param seu_obj A Seurat object containing spatial transcriptomics data, with 'Spatial' as the assay name. The object should be normalized using the NormalizeData function.
 #' @param ccc_db This parameter represents the reference database of cell-cell interactions, e.g., CellChatDB.human, containing interaction, complex, and geneInfo tables.
+#' @param assay Assay to read normalized expression from. Defaults to
+#'   \code{"Spatial"} if present, otherwise the default assay.
 #'
 #' @return A list with two elements: (1) a gene/complex-by-spot expression matrix, and (2) a filtered CellChat interaction data frame.
 #' @import tidyverse
-#' @import Seurat
 #' @export
 #'
 prepare_for_LRintegratedmatrix=function(
     seu_obj,
-    ccc_db
+    ccc_db,
+    assay = NULL
 ){
-  wehave_genes=rownames(seu_obj)
+  expr = .get_layer_data(seu_obj, layer = "data", assay = assay)
+  wehave_genes=rownames(expr)
 
 
   ### Extract reference information from the CellChat database
@@ -47,8 +50,8 @@ prepare_for_LRintegratedmatrix=function(
 
 
   ### Extract expression data
-  gene.used=intersect(rownames(seu_obj[["Spatial"]]@data),gene.used) # Genes present in the ST dataset; adjust the order accordingly
-  spatial.data=seu_obj[["Spatial"]]@data[gene.used,] %>% as.data.frame() # Subset the expression matrix to relevant genes
+  gene.used=intersect(rownames(expr),gene.used) # Genes present in the ST dataset; adjust the order accordingly
+  spatial.data=as.matrix(expr[gene.used,]) %>% as.data.frame() # Subset the expression matrix to relevant genes
 
 
   ### Add expression data for complexes

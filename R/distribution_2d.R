@@ -41,7 +41,6 @@
 #' @return A \code{ggplot2} object representing the spatial distribution of the
 #'   selected feature.
 #' @import tidyverse
-#' @import Nebulosa
 #' @export
 distribution_2d=function(
     feature_matrix,
@@ -81,6 +80,9 @@ distribution_2d=function(
 
 
   if(visualization_type == "density"){
+    if (!requireNamespace("Nebulosa", quietly = TRUE)) {
+      stop("visualization_type = 'density' requires the Nebulosa package (Bioconductor).")
+    }
     z=Nebulosa:::calculate_density(
       w = one.feature.exp[,1],
       x = one.feature.exp[, c("col", "row")],

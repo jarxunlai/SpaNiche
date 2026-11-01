@@ -4,12 +4,15 @@
 \alias{prepare_for_LRintegratedmatrix}
 \title{prepare_for_LRintegratedmatrix}
 \usage{
-prepare_for_LRintegratedmatrix(seu_obj, ccc_db)
+prepare_for_LRintegratedmatrix(seu_obj, ccc_db, assay = NULL)
 }
 \arguments{
 \item{seu_obj}{A Seurat object containing spatial transcriptomics data, with 'Spatial' as the assay name. The object should be normalized using the NormalizeData function.}
 
 \item{ccc_db}{This parameter represents the reference database of cell-cell interactions, e.g., CellChatDB.human, containing interaction, complex, and geneInfo tables.}
+
+\item{assay}{Assay to read normalized expression from. Defaults to
+\code{"Spatial"} if present, otherwise the default assay.}
 }
 \value{
 A list with two elements: (1) a gene/complex-by-spot expression matrix, and (2) a filtered CellChat interaction data frame.

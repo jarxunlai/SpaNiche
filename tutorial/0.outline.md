@@ -20,12 +20,20 @@ SpaNiche</figcaption>
 ## Installation
 
 SpaNiche has been tested on both Windows (R version 4.2.1) and
-Linux-based systems (R version 4.2.3), and should be compatible with
-other R environments.
+Linux-based systems (R version 4.2.3, 4.3.3 and 4.4.3), with Seurat v4
+(4.4.0) and Seurat v5 (5.5.1), and should be compatible with other R
+environments.
 
 You can install SpaNiche from GitHub using:
 
     devtools::install_github("SiyuanHuang1/SpaNiche")
+
+`spaniche_nmf_comm()` (LR-induced pathway inference) additionally needs
+scSeqComm, and `distribution_2d(visualization_type = "density")` needs
+Nebulosa:
+
+    remotes::install_gitlab("sysbiobig/scseqcomm")
+    BiocManager::install("Nebulosa")
 
 ## Application examples
 

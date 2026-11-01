@@ -21,7 +21,9 @@ make_distance_matrix_LR(
 \item{digits}{integer indicating the number of decimal places.}
 }
 \value{
-A named list of row-normalized adjacency matrices.
+A named list of row-normalized adjacency matrices (sparse \code{dgCMatrix}).
+\code{view1} contains the spot itself and its first-order neighbours;
+\code{view2} contains only the ring between the two thresholds.
 }
 \description{
 This function computes pairwise Euclidean distances between spatial spots and constructs distance-based adjacency matrices designed for ligand-receptor interaction information.

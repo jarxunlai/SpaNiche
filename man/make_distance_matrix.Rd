@@ -23,6 +23,7 @@ make_distance_matrix(
 \value{
 A named list of adjacency matrices corresponding to each dm_type.
 Each matrix is normalized so that rows sum to 1 (row-normalization matrix).
+Matrices are sparse (\code{dgCMatrix}); use \code{as.matrix()} for a dense copy.
 }
 \description{
 The function calculates Euclidean distances between spatial spots and converts them into adjacency matrices based on specified distance thresholds.

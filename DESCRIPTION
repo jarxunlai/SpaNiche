@@ -12,21 +12,29 @@ RoxygenNote: 7.3.2
 Imports: 
     patchwork,
     IntNMF,
-    scSeqComm,
-    raster,
     RColorBrewer,
     scales,
-    reticulate,
     Seurat,
+    SeuratObject,
+    Matrix,
+    RhpcBLASctl,
+    methods,
     tidyverse,
-    plyr,
-    pheatmap,
-    Nebulosa,
     ggrastr,
     reshape2,
     utils,
     grDevices,
     stats
+Suggests: 
+    scSeqComm,
+    Nebulosa,
+    arrow,
+    ape,
+    testthat (>= 3.0.0),
+    withr
+Remotes: 
+    gitlab::sysbiobig/scseqcomm
 Depends: 
-    R (>= 2.10)
+    R (>= 4.0.0)
 LazyData: true
+Config/testthat/edition: 3

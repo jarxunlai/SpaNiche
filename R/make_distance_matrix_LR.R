@@ -8,9 +8,10 @@
 #' @param distance_thre A numeric vector specifying distance thresholds. If only \code{"view1"} is requested, a single value is sufficient, defining the distance from center to first-order neighbors (view1). If \code{"view1"} + \code{"view2"} is requested, two values are required, defining the distance from center to first-order neighbors (view1) and from center to second-order neighbors (view2).
 #' @param digits integer indicating the number of decimal places.
 #'
-#' @return A named list of row-normalized adjacency matrices.
+#' @return A named list of row-normalized adjacency matrices (sparse \code{dgCMatrix}).
+#' \code{view1} contains the spot itself and its first-order neighbours;
+#' \code{view2} contains only the ring between the two thresholds.
 #' @import tidyverse
-#' @importFrom raster pointDistance
 make_distance_matrix_LR = function(
     spatialdf,
     dm_type = c("view1", "view2"),
@@ -31,41 +32,34 @@ make_distance_matrix_LR = function(
   distance_thre=sort(distance_thre)
   # names(distance_thre) = dm_type
 
-  dst <- pointDistance(spatialdf,lonlat=F)
-  dst=round(dst,digits)
+  pairs = .neighbor_pairs(spatialdf, max(distance_thre), digits)
+  n = nrow(spatialdf)
+  spots = rownames(spatialdf)
 
   res_list=as.list(1:length(dm_type))
   names(res_list)=dm_type
 
   if ("view1" %in% dm_type) {
     thre1 = distance_thre[1]
-    dst_view1=dst
-
-    dst_view1[dst_view1 <= thre1] = 1
-    dst_view1[dst_view1 > thre1] = 0
-    colnames(dst_view1)=rownames(spatialdf)
-    rownames(dst_view1)=rownames(spatialdf)
-    coef1=rowSums(dst_view1)
-    coef1=coef1 ^ (-1)
-    dst_view1=dst_view1 %>% apply(2,function(x){ x*coef1})
-    res_list$view1 = dst_view1
+    v = pairs$d
+    v[v <= thre1] = 1
+    v[v > thre1] = 0
+    keep = pairs$d <= thre1 & v != 0
+    res_list$view1 = .row_normalized_adjacency(pairs$i[keep], pairs$j[keep], n, spots)
   }
 
   if ("view2" %in% dm_type) {
     thre1 = distance_thre[1]
     thre2 = distance_thre[2]
-    dst_view2=dst
-
-    dst_view2[dst_view2 == 0] = 1
-    dst_view2[dst_view2 > 0 & dst_view2 <= thre1] = 0
-    dst_view2[dst_view2 > thre1 & dst_view2 <= thre2] = 1
-    dst_view2[dst_view2 > thre2] = 0
-    colnames(dst_view2)=rownames(spatialdf)
-    rownames(dst_view2)=rownames(spatialdf)
-    coef2=rowSums(dst_view2)
-    coef2=coef2 ^ (-1)
-    dst_view2=dst_view2 %>% apply(2,function(x){ x*coef2})
-    res_list$view2 = dst_view2
+    # Same sequence of recodings as the dense implementation, applied to the
+    # candidate pairs (every pair farther than thre2 ends up 0 anyway).
+    v = pairs$d
+    v[v == 0] = 1
+    v[v > 0 & v <= thre1] = 0
+    v[v > thre1 & v <= thre2] = 1
+    v[v > thre2] = 0
+    keep = v != 0
+    res_list$view2 = .row_normalized_adjacency(pairs$i[keep], pairs$j[keep], n, spots)
   }
 
   res_list
