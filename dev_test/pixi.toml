@@ -1,0 +1,59 @@
+[workspace]
+name = "spaniche-dev"
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+# Shared runtime for both Seurat generations. OpenBLAS is pinned on purpose:
+# it is the default BLAS of conda-forge R and the one that spawns one thread
+# per core unless told otherwise, which is what we want to reproduce.
+[dependencies]
+libblas = { version = "*", build = "*openblas" }
+r-tidyverse = "*"
+r-patchwork = "*"
+r-raster = "*"
+r-rcolorbrewer = "*"
+r-scales = "*"
+r-reticulate = "*"
+r-plyr = "*"
+r-pheatmap = "*"
+r-reshape2 = "*"
+r-ggrastr = "*"
+r-hdf5r = "*"
+r-ape = "*"
+r-matrix = "*"
+r-rhpcblasctl = "*"
+r-remotes = "*"
+r-devtools = "*"
+r-testthat = "*"
+r-roxygen2 = "7.3.2.*"
+r-bench = "*"
+bioconductor-nebulosa = "*"
+# IntNMF (CRAN) dependencies
+r-mclust = "*"
+r-gplots = "*"
+r-rocr = "*"
+r-cluster = "*"
+r-nmf = "*"
+
+[feature.v4.dependencies]
+r-base = "4.3.*"
+r-seurat = "4.4.*"
+r-seuratobject = "4.1.*"
+
+[feature.v5.dependencies]
+r-base = "4.4.*"
+r-seurat = "5.*"
+r-seuratobject = "5.*"
+r-arrow = "*"
+
+[environments]
+v4 = ["v4"]
+v5 = ["v5"]
+
+[tasks]
+# R packages that are not on conda channels are installed into the env library.
+install-extra = "Rscript scripts/install_extra.R"
+test = "Rscript -e 'devtools::test(\"..\")'"
+document = "Rscript -e 'devtools::document(\"..\")'"
+probe = "Rscript scripts/probe_seurat.R pkg"
+probe-baseline = "Rscript scripts/probe_seurat.R baseline"
