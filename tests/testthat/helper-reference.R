@@ -1,8 +1,3 @@
-# SpaNiche functions use %>%, dplyr and stringr verbs that are only found when
-# the tidyverse is attached (the package imports "tidyverse", which exports
-# none of them), so attach it as the tutorials do.
-suppressPackageStartupMessages(library(tidyverse))
-
 # Reference implementations: the original dense SpaNiche code (v1.1.0), kept
 # verbatim except raster::pointDistance(x, lonlat = FALSE) -> as.matrix(dist(x)),
 # which computes the same Euclidean distances. Used as test oracles.

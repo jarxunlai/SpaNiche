@@ -9,7 +9,6 @@
 #'   \code{"Spatial"} if present, otherwise the default assay.
 #'
 #' @return A list with two elements: (1) a gene/complex-by-spot expression matrix, and (2) a filtered CellChat interaction data frame.
-#' @import tidyverse
 #' @export
 #'
 prepare_for_LRintegratedmatrix=function(

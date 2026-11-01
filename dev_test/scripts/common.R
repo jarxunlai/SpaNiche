@@ -3,16 +3,10 @@
 # load_spaniche(code_dir): makes SpaNiche functions available.
 #   - a directory containing R/*.R sourced into the global env (used for the
 #     untouched baseline snapshot, so its broken NAMESPACE is bypassed), or
-#   - "pkg" to devtools::load_all() the package in the repo root.
+#   - "pkg" to devtools::load_all() the package in the repo root (nothing else
+#     attached, so missing namespace imports show up as errors).
 
-suppressPackageStartupMessages({
-  library(Seurat)
-  library(tidyverse)
-  library(IntNMF)
-  library(Matrix)
-  library(patchwork)
-  library(scales)
-})
+suppressPackageStartupMessages(library(Seurat))
 
 # Scripts are run from dev_test/ (pixi's workspace root).
 repo_root <- normalizePath("..")
@@ -21,6 +15,10 @@ load_spaniche <- function(code_dir) {
   if (identical(code_dir, "pkg")) {
     devtools::load_all(repo_root, quiet = TRUE)
   } else {
+    # The original code only works with these attached (its NAMESPACE imports none of them).
+    suppressPackageStartupMessages({
+      library(tidyverse); library(IntNMF); library(Matrix); library(patchwork); library(scales)
+    })
     pointDistance <<- raster::pointDistance
     for (f in list.files(file.path(code_dir, "R"), full.names = TRUE)) source(f)
     load(file.path(code_dir, "data", "CellChatDB.human.rda"), envir = globalenv())

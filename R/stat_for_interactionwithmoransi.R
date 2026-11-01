@@ -20,7 +20,6 @@
 #' }
 #' The function also produces a CSV file as a side effect.
 #'
-#' @import tidyverse
 #' @import patchwork
 #' @export
 

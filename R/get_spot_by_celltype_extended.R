@@ -30,7 +30,6 @@
 #' Columns correspond to concatenated cell type features from different
 #' spatial views. Column names are suffixed with \code{_view1} or
 #' \code{_view2} when applicable.
-#' @import tidyverse
 #' @export
 get_spot_by_celltype_extended=function(
     spatialdf,

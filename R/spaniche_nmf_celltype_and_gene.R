@@ -56,7 +56,6 @@
 #'     including factor matrices, convergence diagnostics, and cluster assignments.
 #'   }
 #' @import Seurat
-#' @import tidyverse
 #' @import IntNMF
 #' @import scales
 #' @export

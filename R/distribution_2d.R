@@ -40,7 +40,6 @@
 #'
 #' @return A \code{ggplot2} object representing the spatial distribution of the
 #'   selected feature.
-#' @import tidyverse
 #' @export
 distribution_2d=function(
     feature_matrix,

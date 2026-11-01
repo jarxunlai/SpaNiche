@@ -56,7 +56,6 @@
 #'     \item \code{go_plot}: Visualization of enriched functional pathways. No p-value filtering is applied; the top "term_topn" terms are plotted.
 #'   }
 #' @import Seurat
-#' @import tidyverse
 #' @import IntNMF
 #' @import scales
 #' @export
@@ -256,7 +255,7 @@ spaniche_nmf_comm = function(
       )
     )
     ########## Ligand-receptor pairs
-    tmp_topic_lr = topic_lr_small %>% filter(topic == ti)
+    tmp_topic_lr = topic_lr_small %>% dplyr::filter(topic == ti)
     tmp_topic_lr$lr = str_remove(tmp_topic_lr$LRinteraction," .*$")
     tmp_topic_lr$r = ifelse(str_detect(tmp_topic_lr$lr,">"),
                             str_remove(tmp_topic_lr$lr,"^.*>"),
@@ -308,7 +307,7 @@ spaniche_nmf_comm = function(
     cell_functional_response = cell_functional_response %>% arrange(pval)
     cell_functional_response$pval_log10_neg = -log10(cell_functional_response$pval)
     cell_functional_response$cluster = ti
-    all.go = rbind(all.go,cell_functional_response %>% filter(pval < 0.01))
+    all.go = rbind(all.go,cell_functional_response %>% dplyr::filter(pval < 0.01))
     tmpres = cell_functional_response %>% slice_head(n = term_topn)
 
     tmpres=tmpres%>%arrange(pval_log10_neg)

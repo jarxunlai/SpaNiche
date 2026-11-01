@@ -23,7 +23,6 @@
 #' @return A data frame containing Moran's I statistics for spatially variable
 #'   ligand–receptor interactions, merged with ligand–receptor annotation
 #'   information. The output is sorted by decreasing observed Moran's I.
-#' @import tidyverse
 #' @export
 moransi_for_LRintegratedmatrix=function(
     LRintegratedmatrix,

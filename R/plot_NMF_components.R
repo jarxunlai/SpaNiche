@@ -19,7 +19,6 @@
 #' @param color_view Either NULL or a named vector of colors. If provided, it specifies the colors to use for the different views in the plot. If NULL, default ggplot2 colors are used.
 #'
 #' @return A combined ggplot2 plot that visualizes the values of the specified topic grouped by celltype and view.
-#' @import tidyverse
 #' @import patchwork
 #' @import reshape2
 #' @import scales

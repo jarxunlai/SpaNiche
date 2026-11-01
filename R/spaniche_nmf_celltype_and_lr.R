@@ -44,7 +44,6 @@
 #'     \item \code{nmf_res}: Results from spatially regularized integrative NMF.
 #'   }
 #' @import Seurat
-#' @import tidyverse
 #' @import IntNMF
 #' @import scales
 #' @export

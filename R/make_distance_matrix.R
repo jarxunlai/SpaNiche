@@ -12,7 +12,6 @@
 #' Each matrix is normalized so that rows sum to 1 (row-normalization matrix).
 #' Matrices are sparse (\code{dgCMatrix}); use \code{as.matrix()} for a dense copy.
 #'
-#' @import tidyverse
 #' @export
 make_distance_matrix = function(
     spatialdf,

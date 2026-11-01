@@ -11,7 +11,6 @@
 #' @return A named list of row-normalized adjacency matrices (sparse \code{dgCMatrix}).
 #' \code{view1} contains the spot itself and its first-order neighbours;
 #' \code{view2} contains only the ring between the two thresholds.
-#' @import tidyverse
 make_distance_matrix_LR = function(
     spatialdf,
     dm_type = c("view1", "view2"),

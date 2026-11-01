@@ -16,7 +16,6 @@
 #'   \item{all.topic.df.f}{A filtered data frame of significant, topic-specific
 #'   interactions based on the specified thresholds.}
 #' }
-#' @import tidyverse
 #' @export
 DEinteractions_twoclusters = function(
     spot_topic,

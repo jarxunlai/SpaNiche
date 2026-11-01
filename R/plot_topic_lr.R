@@ -20,7 +20,6 @@
 #' @param strip.text.y.size The font size for the text on the y-axis strip. Default is 12.
 #'
 #' @return A \code{ggplot2} object representing a faceted heatmap of topic-specific LR interactions.
-#' @import tidyverse
 #' @export
 plot_topic_lr = function(
     topic_lr,
