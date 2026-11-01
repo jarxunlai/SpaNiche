@@ -31,6 +31,8 @@ BaiduPCS-Go download /<saved dir>/CRC/output/ST-colon3 --saveto data/baidu
 | `python3 scripts/monitor.py runs/X/monitor.tsv -- pixi run -e v5 Rscript scripts/run_tutorial_1a.R pkg runs/X [n_threads=N]` | tutorial 1a end to end, with thread count / busy cores sampled every second |
 | `... scripts/run_tutorial_1b.R pkg runs/X [n_threads=N num_core=M]` | tutorial 1b (`spaniche_nmf_comm`, needs scSeqComm) |
 | `pixi run -e v5 Rscript scripts/smoke_downstream.R runs/X` | plotting / downstream functions with nothing but SpaNiche loaded |
+| `bash scripts/bench.sh [prefix]` | benchmark: tutorial 1a, celltype_and_gene, tutorial 1b under v5 and v4, one at a time |
+| `python3 scripts/stage_times.py runs/X ...` | per-stage wall time and busy cores of finished runs |
 | `pixi run -e v5 Rscript scripts/compare_runs.R runs/X <runs/Y or author>` | numerical comparison of two runs, or against the authors' published output |
 
 `code_dir` is `baseline` (original code, sourced) or `pkg` (`devtools::load_all("..")`).
