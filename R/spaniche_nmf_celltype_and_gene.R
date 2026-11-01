@@ -137,8 +137,8 @@ spaniche_nmf_celltype_and_gene = function(
   # Estimate initial modality weights prior to running IntNMF
   dat <- list(spot.ct.df,spot.gene.df)
   theta_v = define_initial_weight(dat)
-  # The function nmf.mnnals requires the samples to be on rows and variables on columns.
-  fit <- nmf.mnnals(dat=dat,k=topic_num,maxiter=50,st.count=10,n.ini=3,ini.nndsvd=TRUE,seed=TRUE,wt = theta_v)
+  # .nmf_mnnals (same result as IntNMF::nmf.mnnals) requires the samples to be on rows and variables on columns.
+  fit <- .nmf_mnnals(dat=dat,k=topic_num,maxiter=50,st.count=10,n.ini=3,ini.nndsvd=TRUE,seed=TRUE,wt = theta_v)
   # Determine more refined modality weights
   if (length(defined_weight) == 2 & all(defined_weight > 0)) {
     rho_v = define_good_weight(X = dat,Wzero = fit$W,Hzero = fit$H,theta_v = theta_v,weight_input = defined_weight)

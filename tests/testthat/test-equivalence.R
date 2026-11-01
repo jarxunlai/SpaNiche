@@ -128,3 +128,34 @@ test_that("vectorised Moran's I matches ape::Moran.I with Seurat's weights", {
   expect_equal(res$moransi.spatially.variable.rank[ord], 1:12)
   expect_equal(sum(res$moransi.spatially.variable, na.rm = TRUE), 5)
 })
+
+test_that(".same_partition is equivalent to comparing co-membership matrices", {
+  conn = function(x) outer(x, x, "==")
+  set.seed(6)
+  for (r in 1:200) {
+    a = sample(1:4, 12, replace = TRUE)
+    b = if (r %% 3 == 0) c(5, 9, 7, 2)[a] else sample(1:4, 12, replace = TRUE)  # relabelled copy or random
+    expect_identical(SpaNiche:::.same_partition(a, b), all(conn(a) == conn(b)))
+  }
+  expect_false(SpaNiche:::.same_partition(1:3, NULL))
+})
+
+test_that(".nmf_mnnals reproduces IntNMF::nmf.mnnals exactly", {
+  set.seed(7)
+  n = 120
+  dat = list(matrix(rexp(n * 8), n), matrix(rexp(n * 40), n))
+  for (args in list(
+    list(k = 4, maxiter = 50, st.count = 10, n.ini = 3, ini.nndsvd = TRUE, wt = c(1, 0.3)),
+    list(k = 3, maxiter = 40, st.count = 3, n.ini = 4, ini.nndsvd = FALSE, wt = c(2, 1))
+  )) {
+    args = c(list(dat = dat, seed = TRUE), args)
+    new = do.call(SpaNiche:::.nmf_mnnals, args)
+    ref = do.call(IntNMF::nmf.mnnals, args)
+    expect_identical(new$W, ref$W)
+    expect_identical(new$H, ref$H)
+    expect_identical(new$convergence, ref$convergence)
+    expect_identical(new$min.f.WH, ref$min.f.WH)
+    expect_identical(new$clusters, ref$clusters)
+    expect_true(any(ref$convergence[, "stability"] == 1))  # the stopping rule was exercised
+  }
+})
