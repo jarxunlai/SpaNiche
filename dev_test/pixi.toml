@@ -35,6 +35,30 @@ r-rocr = "*"
 r-cluster = "*"
 r-nmf = "*"
 
+# scSeqComm (GitLab) dependencies, as conda binaries so nothing needs system libraries
+r-rlang = "*"
+r-foreach = "*"
+bioconductor-topgo = "*"
+r-igraph = "*"
+r-tidygraph = "*"
+r-scico = "*"
+r-gridextra = "*"
+r-gtable = "*"
+r-psych = "*"
+r-gtools = "*"
+r-tictoc = "*"
+r-rcpp = "*"
+r-bigmemory = "*"
+r-bh = "*"
+r-effsize = "*"
+r-doparallel = "*"
+r-dorng = "*"
+r-ggpubr = "*"
+bioconductor-clusterprofiler = "*"
+"bioconductor-org.hs.eg.db" = "*"
+r-chorddiag = "*"
+r-magick = "*"
+
 [feature.v4.dependencies]
 r-base = "4.3.*"
 r-seurat = "4.4.*"
@@ -52,7 +76,8 @@ v5 = ["v5"]
 
 [tasks]
 # R packages that are not on conda channels are installed into the env library.
-install-extra = "Rscript scripts/install_extra.R"
+bioc-data = "bash scripts/install_bioc_data.sh"
+install-extra = { cmd = "Rscript scripts/install_extra.R", depends-on = ["bioc-data"] }
 test = "Rscript -e 'devtools::test(\"..\")'"
 document = "Rscript -e 'devtools::document(\"..\")'"
 probe = "Rscript scripts/probe_seurat.R pkg"

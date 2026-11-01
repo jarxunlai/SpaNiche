@@ -18,6 +18,7 @@ load_spaniche <- function(code_dir) {
     # The original code only works with these attached (its NAMESPACE imports none of them).
     suppressPackageStartupMessages({
       library(tidyverse); library(IntNMF); library(Matrix); library(patchwork); library(scales)
+      if (requireNamespace("scSeqComm", quietly = TRUE)) library(scSeqComm)
     })
     pointDistance <<- raster::pointDistance
     for (f in list.files(file.path(code_dir, "R"), full.names = TRUE)) source(f)
