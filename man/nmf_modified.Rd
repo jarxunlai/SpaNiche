@@ -55,6 +55,7 @@ combinations.
 \item \code{clusters}: Cluster assignments derived from \code{W}
 using maximum component loading.
 }
+}
 \description{
 nmf_modified: Core function for spatially regularized integrative non-negative matrix factorization of multi-modal data
 }

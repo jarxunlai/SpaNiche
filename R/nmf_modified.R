@@ -24,6 +24,7 @@
 #'       combinations.
 #'     \item \code{clusters}: Cluster assignments derived from \code{W}
 #'       using maximum component loading.
+#'   }
 nmf_modified = function(
   dat = dat,
   Wzero = fit$W,

@@ -20,7 +20,8 @@
   if (utils::packageVersion("SeuratObject") >= "5.0.0") {
     assay_obj <- object[[assay]]
     if (inherits(assay_obj, "StdAssay")) {
-      found <- SeuratObject::Layers(assay_obj, search = layer)
+      # Looked up at run time: these functions only exist in SeuratObject >= 5.
+      found <- getExportedValue("SeuratObject", "Layers")(assay_obj, search = layer)
       if (length(found) == 0) {
         stop("Layer '", layer, "' not found in assay '", assay, "'.",
              if (layer == "data") " Run NormalizeData() first." else "", call. = FALSE)
@@ -30,7 +31,7 @@
              "). Run JoinLayers() first, or analyse one sample at a time.", call. = FALSE)
       }
     }
-    return(SeuratObject::LayerData(object, assay = assay, layer = layer))
+    return(getExportedValue("SeuratObject", "LayerData")(object, assay = assay, layer = layer))
   }
   SeuratObject::GetAssayData(object, assay = assay, slot = layer)
 }

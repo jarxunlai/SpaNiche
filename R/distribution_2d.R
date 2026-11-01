@@ -82,7 +82,7 @@ distribution_2d=function(
     if (!requireNamespace("Nebulosa", quietly = TRUE)) {
       stop("visualization_type = 'density' requires the Nebulosa package (Bioconductor).")
     }
-    z=Nebulosa:::calculate_density(
+    z=utils::getFromNamespace("calculate_density", "Nebulosa")(
       w = one.feature.exp[,1],
       x = one.feature.exp[, c("col", "row")],
       method = "wkde",
